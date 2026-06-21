@@ -25,7 +25,7 @@ namespace backend.Services.AlbumCoverGeneration
         {
             var bitmap = new SKBitmap(CanvasSize, CanvasSize, SKColorType.Rgba8888, SKAlphaType.Premul);
             using var canvas = new SKCanvas(bitmap);
-            Background.Draw(canvas);
+            Background.Draw(canvas, CanvasSize, seed);
             canvas.Flush();
             return bitmap;
         }
