@@ -3,7 +3,10 @@ using SkiaSharp;
 namespace backend.Services.AlbumCoverGeneration
 {
 
-
+    public record ColorPalette(
+        SKColor Background,
+        SKColor BackgroundAlt
+    );
     public static class Colors
     {
         public static SKColor ShiftHue(SKColor color, float degrees)
