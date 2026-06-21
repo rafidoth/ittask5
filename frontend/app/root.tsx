@@ -11,6 +11,7 @@ import type { Route } from "./+types/root";
 import "./app.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createTheme, MantineProvider } from '@mantine/core';
+import { useEffect } from "react";
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
   {
@@ -30,7 +31,19 @@ const theme = createTheme({
 });
 
 const queryClient = new QueryClient();
+declare global {
+  interface Window {
+    __TANSTACK_QUERY_CLIENT__:
+    import('@tanstack/query-core')
+    .QueryClient
+  }
+}
+
+
 export function Layout({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    window.__TANSTACK_QUERY_CLIENT__ = queryClient
+  }, []);
   return (
     <html lang="en">
       <head>

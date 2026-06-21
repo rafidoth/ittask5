@@ -4,13 +4,9 @@ namespace backend.Controllers;
 
 [ApiController]
 [Route("/api")]
-public class SongsController : ControllerBase
+public class SongsController(ISongService songService) : ControllerBase
 {
-    private readonly ISongService _songService;
-    public SongsController(ISongService songService)
-    {
-        _songService = songService;
-    }
+    private readonly ISongService _songService = songService;
 
     [HttpGet("songs")]
     public IActionResult GetSongs()

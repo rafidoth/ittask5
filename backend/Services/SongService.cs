@@ -1,5 +1,6 @@
 using backend.Dto;
 using backend.Entity;
+using backend.Services.AlbumCoverGeneration;
 using backend.Services.ServiceResults;
 using Bogus;
 
@@ -7,29 +8,15 @@ namespace backend.Services
 {
     public class SongService : ISongService
     {
-        private Faker<Song> _faker;
+        private readonly Faker<Song> _faker;
 
         public SongService()
         {
-            ConfigureFaker();
-        }
-
-        public void ChangeLanguage(string language)
-        {
-            ConfigureFaker(language);
-        }
-
-        public void ChangeSeed(int seed)
-        {
-            ConfigureFaker(seed: seed);
-        }
-
-        private void ConfigureFaker(string language = "en", int seed = 1234)
-        {
-            _faker = new Faker<Song>(language).UseSeed(seed)
+            _faker = new Faker<Song>().UseSeed(1234)
                 .RuleFor(s => s.Id, f => f.IndexFaker + 1);
             ConfigureFakerRules();
         }
+
 
         private void ConfigureFakerRules()
         {
@@ -74,8 +61,26 @@ namespace backend.Services
 
         private List<Song> GenerateSongs(int count)
         {
-            List<Song> songs = _faker.Generate(count);
-            return songs;
+            try
+            {
+                List<Song> songs = _faker.Generate(count);
+                foreach (var song in songs)
+                {
+                    var coverParams = new AlbumCoverParams
+                    {
+                        Title = song.Title,
+                        Artist = song.Artist,
+                        Album = song.Album
+                    };
+                    song.CoverImageBase64 = AlbumCover.Make(coverParams, new Random(song.Id));
+                }
+                return songs;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error generating songs: {ex.Message}");
+            }
+
         }
 
         public ServiceResult<SongsResponseDto> GetSongs(int count)

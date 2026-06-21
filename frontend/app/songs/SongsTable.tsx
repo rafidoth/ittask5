@@ -39,7 +39,7 @@ export default function SongsTable({ data }: SongsTableProps) {
           <Collapse expanded={expandedId === element.id} transitionDuration={300} keepMounted={false}>
             <Paper style={{ width: "100%" }}>
               <Box p="md">
-                TODO : display more details about the song, like lyrics, release date, etc.
+                <img src={`data:image/png;base64,${element.coverImageBase64}`} alt="album cover" />
               </Box>
             </Paper>
           </Collapse>

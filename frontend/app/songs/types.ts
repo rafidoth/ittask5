@@ -13,6 +13,7 @@ export type Song = {
   artist: string;
   album: string;
   genre: string;
+  coverImageBase64?: string;
 };
 
 export type GenerationResponse = {
