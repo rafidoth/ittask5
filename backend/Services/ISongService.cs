@@ -5,6 +5,6 @@ namespace backend.Services
 {
     public interface ISongService
     {
-        ServiceResult<SongsResponseDto> GetSongs(int count);
+        Task<ServiceResult<SongsResponseDto>> GetSongs(int count);
     }
 }
