@@ -9,7 +9,9 @@ namespace backend.Entity
         public required string Artist { get; set; }
         public required string Album { get; set; }
         public required string Genre { get; set; }
+        public required int likes { get; set; }
         public string? CoverImageBase64 { get; set; }
+
 
     }
 }

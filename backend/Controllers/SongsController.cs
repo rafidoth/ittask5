@@ -9,9 +9,14 @@ public class SongsController(ISongService songService) : ControllerBase
     private readonly ISongService _songService = songService;
 
     [HttpGet("songs")]
-    public async Task<IActionResult> GetSongs()
+    public async Task<IActionResult> GetSongs(
+        [FromQuery] int seed = 0,
+        [FromQuery] string language = "en",
+        [FromQuery] float likes = 0f
+    )
     {
-        var result = await _songService.GetSongs(10);
+        _songService.UpdateParameters(likes, seed, language);
+        var result = await _songService.GetSongs(15);
         if (result.IsSuccess)
         {
             return Ok(result.Data);

@@ -6,10 +6,19 @@ using Bogus;
 
 namespace backend.Services
 {
+
+    public enum Language
+    {
+        En,
+        Es
+    }
+
     public class SongService : ISongService
     {
         private readonly Faker<Song> _faker;
         private int seed = 123456789;
+        private float likes = 5.0f;
+        private Language language = Language.En;
 
         public SongService()
         {
@@ -17,15 +26,66 @@ namespace backend.Services
                 .RuleFor(s => s.Id, f => f.IndexFaker + 1);
             ConfigureFakerRules();
         }
+        public async Task<ServiceResult<SongsResponseDto>> GetSongs(int count)
+        {
+            try
+            {
+                var response = new SongsResponseDto
+                {
+                    Songs = await GenerateSongs(count),
+                    success = true
+                };
+                return ServiceResult<SongsResponseDto>.Success(response, "Songs generated successfully.");
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<SongsResponseDto>.Failure($"An error occurred while generating songs: {ex.Message}", "SONG_GENERATION_ERROR");
+            }
+        }
 
+        public void UpdateParameters(float likes, int seed, string language)
+        {
+            this.likes = likes;
+            this.seed = seed;
+            this.language = ResolveLanguage(language);
+            _faker.UseSeed(seed);
+        }
 
+        public Language ResolveLanguage(string lang)
+        {
+            return lang.ToLower() switch
+            {
+                "en" => Language.En,
+                "es" => Language.Es,
+                _ => Language.En,
+            };
+        }
         private void ConfigureFakerRules()
         {
             AddTitleRules();
             AddArtistRules();
             AddAlbumRules();
             AddGenreRules();
+            AddLikesRules();
         }
+
+        private void AddLikesRules()
+        {
+            if (likes < 0 || likes > 10)
+            {
+                throw new ArgumentException("likes must be between 0 and 10");
+            }
+            _faker.RuleFor(s => s.likes, f =>
+            {
+                int hi = (int)Math.Ceiling((double)likes);
+                int lo = (int)Math.Floor((double)likes);
+                if (hi == lo) return hi;
+                if (f.Random.Double() <= GetFractionalPart(likes)) return lo;
+                return hi;
+            });
+        }
+
+        private float GetFractionalPart(float likes) => likes - (float)Math.Floor((double)likes);
 
         private void AddTitleRules()
         {
@@ -87,6 +147,7 @@ namespace backend.Services
             }
         }
 
+
         private async Task AttachCoverImage(List<Song> songs)
         {
             foreach (var song in songs)
@@ -101,17 +162,6 @@ namespace backend.Services
             }
         }
 
-        public async Task<ServiceResult<SongsResponseDto>> GetSongs(int count)
-        {
-            try
-            {
-                var response = new SongsResponseDto { Songs = await GenerateSongs(count), success = true };
-                return ServiceResult<SongsResponseDto>.Success(response, "Songs generated successfully.");
-            }
-            catch (Exception ex)
-            {
-                return ServiceResult<SongsResponseDto>.Failure($"An error occurred while generating songs: {ex.Message}", "SONG_GENERATION_ERROR");
-            }
-        }
+
     }
 }
