@@ -1,6 +1,6 @@
 import { Box, Paper, Select, Flex, Text, RollingNumber, Slider, Stack, SegmentedControl } from "@mantine/core";
 import { IconArrowsShuffle, IconChevronDown, IconGrid4x4, IconLayoutGrid, IconTable } from "@tabler/icons-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLanguage, useLikes, useParameterActions, useSeed, useViewMode } from "./parametersStore";
 import type { ViewMode } from "./types";
 
@@ -10,6 +10,11 @@ export default function ParameterToolbar() {
     const seed = useSeed();
     const viewMode = useViewMode();
     const actions = useParameterActions();
+    const [localLikes, setLocalLikes] = useState(likes);
+
+    useEffect(() => {
+        setLocalLikes(likes);
+    }, [likes]);
 
     return (
         <Paper >
@@ -51,9 +56,10 @@ export default function ParameterToolbar() {
                             min={0}
                             max={10}
                             step={0.1}
-                            value={likes}
+                            value={localLikes}
+                            onChange={(value) => setLocalLikes(value)}
+                            onChangeEnd={(value) => actions.setLikes(value)}
                             marks={Array.from({ length: 11 }, (_, i) => ({ value: i }))}
-                            onChange={(value) => actions.setLikes(value)}
                         />
                     </Stack>
                 </Flex>

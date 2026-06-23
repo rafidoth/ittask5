@@ -3,6 +3,7 @@ using backend.Entity;
 using backend.Services.AlbumCoverGeneration;
 using backend.Services.ServiceResults;
 using Bogus;
+using Bogus.Hollywood;
 
 namespace backend.Services
 {
@@ -43,23 +44,24 @@ namespace backend.Services
             }
         }
 
-        public void UpdateParameters(float likes, int seed, string language)
+        public void UpdateParameters(float likes, int seed, string language, int page)
         {
             this.likes = likes;
-            this.seed = seed;
             this.language = ResolveLanguage(language);
-            _faker.UseSeed(seed);
+            unchecked
+            {
+                this.seed = HashCode.Combine(seed, page);
+            }
+            _faker.UseSeed(this.seed);
         }
 
-        public Language ResolveLanguage(string lang)
+        public Language ResolveLanguage(string lang) => lang.ToLower() switch
         {
-            return lang.ToLower() switch
-            {
-                "en" => Language.En,
-                "es" => Language.Es,
-                _ => Language.En,
-            };
-        }
+            "en" => Language.En,
+            "es" => Language.Es,
+            _ => Language.En,
+        };
+
         private void ConfigureFakerRules()
         {
             AddTitleRules();
@@ -67,6 +69,12 @@ namespace backend.Services
             AddAlbumRules();
             AddGenreRules();
             AddLikesRules();
+            _faker.FinishWith((f, s) =>
+            {
+                s.Title = Capitalize(s.Title);
+                s.Artist = Capitalize(s.Artist);
+                s.Album = Capitalize(s.Album);
+            });
         }
 
         private void AddLikesRules()
@@ -104,7 +112,7 @@ namespace backend.Services
                 10 => $"{f.Date.Month()} {f.Hacker.Noun()}",
                 11 => $"Midnight {f.Address.City()}",
                 _ => $"The {f.Date.Month()} We {f.Hacker.Verb()}",
-            }).FinishWith((f, s) => s.Title = char.ToUpper(s.Title[0]) + s.Title[1..]);
+            });
         }
 
         private void AddArtistRules()
@@ -114,16 +122,17 @@ namespace backend.Services
                 0 => $"{f.Person.FullName}",
                 1 => $"{f.Person.FirstName} {f.Name.Suffix()}",
                 _ => $"{f.Person.FirstName} {f.Name.Suffix()}",
-            }).FinishWith((f, s) => s.Title = char.ToUpper(s.Title[0]) + s.Title[1..]);
+            });
         }
 
         private void AddAlbumRules()
         {
             _faker.RuleFor(s => s.Album, f => f.Random.Int(1, 3) switch
             {
-                1 => $"{f.Hacker.Adjective()} {f.Hacker.Noun()}",
-                2 => $"{f.Hacker.IngVerb()} {f.Hacker.Noun()}",
-                _ => $"{f.Hacker.Adjective()} {f.Hacker.IngVerb()}"
+                1 => $"{f.Hacker.Noun()}",
+                2 => $"{f.Hacker.IngVerb()}",
+                3 => $"{f.Commerce.Product()}",
+                _ => "Single"
             });
         }
 
@@ -132,6 +141,11 @@ namespace backend.Services
             _faker.RuleFor(s => s.Genre, f => f.Music.Genre());
         }
 
+        private static string Capitalize(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return text;
+            return char.ToUpper(text[0]) + text[1..];
+        }
 
         private async Task<List<Song>> GenerateSongs(int count)
         {
@@ -154,11 +168,10 @@ namespace backend.Services
             {
                 var coverParams = new AlbumCoverParams
                 {
-                    Title = song.Title,
-                    Artist = song.Artist,
-                    Album = song.Album
+                    Title = song.Album == "Single" ? song.Title : song.Album,
+                    Subtitle = song.Artist,
                 };
-                song.CoverImageBase64 = await AlbumCover.Make(coverParams, new Random(seed + song.Id));
+                song.CoverImageBase64 = await AlbumCover.Make(coverParams, new Random(HashCode.Combine(seed, song.Id)));
             }
         }
 

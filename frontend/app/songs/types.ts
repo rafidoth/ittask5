@@ -13,6 +13,7 @@ export type Song = {
   artist: string;
   album: string;
   genre: string;
+  likes: number;
   coverImageBase64?: string;
 };
 

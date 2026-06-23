@@ -12,11 +12,12 @@ public class SongsController(ISongService songService) : ControllerBase
     public async Task<IActionResult> GetSongs(
         [FromQuery] int seed = 0,
         [FromQuery] string language = "en",
-        [FromQuery] float likes = 0f
+        [FromQuery] float likes = 0f,
+        [FromQuery] int page = 0
     )
     {
-        _songService.UpdateParameters(likes, seed, language);
-        var result = await _songService.GetSongs(15);
+        _songService.UpdateParameters(likes, seed, language, page);
+        var result = await _songService.GetSongs(12);
         if (result.IsSuccess)
         {
             return Ok(result.Data);

@@ -4,9 +4,8 @@ namespace backend.Services.AlbumCoverGeneration
 {
     public class AlbumCoverParams
     {
+        public required string Subtitle { get; set; }
         public required string Title { get; set; }
-        public required string Artist { get; set; }
-        public required string Album { get; set; }
     }
 
     public class DesignElements
@@ -82,7 +81,7 @@ namespace backend.Services.AlbumCoverGeneration
             float iconScale = textLayout == TextLayout.TitleTopSubtitleBottom ? 0.35f : 0.5f;
             if (diceBear) await DiceBear.Draw(canvas, size, seed, iconScale, position);
             if (overlay) Overlay.Apply(canvas, size, seed, palette);
-            TextTitle.Draw(canvas, size, palette, parameters.Title, parameters.Artist, textLayout, seed);
+            TextTitle.Draw(canvas, size, palette, parameters.Title, parameters.Subtitle, textLayout, seed);
         }
 
     }
