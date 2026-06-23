@@ -5,6 +5,7 @@ import SongsTable from "~/songs/SongsTable";
 import { getSongs } from "~/api";
 import { Container } from "@mantine/core";
 import ParameterToolbar from "~/songs/ParameterToolbar";
+import { useLanguage, useLikes, useSeed } from "~/songs/parametersStore";
 
 export function meta({ }: Route.MetaArgs) {
   return [
@@ -14,9 +15,13 @@ export function meta({ }: Route.MetaArgs) {
 }
 
 export default function Home() {
+  const language = useLanguage();
+  const likes = useLikes();
+  const seed = useSeed();
+
   const { data, isPending } = useQuery<GenerationResponse>({
-    queryKey: ["songs"],
-    queryFn: getSongs,
+    queryKey: ["songs", seed, language, likes],
+    queryFn: () => getSongs(seed, language, likes),
     retry: false,
   });
 
