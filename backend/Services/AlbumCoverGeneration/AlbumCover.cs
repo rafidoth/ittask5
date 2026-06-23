@@ -13,7 +13,6 @@ namespace backend.Services.AlbumCoverGeneration
     {
         public bool Overlay { get; set; }
         public TextLayout TextLayout { get; set; }
-        public bool DiceBear { get; set; }
     }
     public static class AlbumCover
     {
@@ -44,7 +43,7 @@ namespace backend.Services.AlbumCoverGeneration
             var combinations = GetDesignCombinations();
             var rngCombo = combinations[seed.Next(combinations.Length)];
             await ApplyDesign(canvas, CanvasSize, palette, parameters, seed,
-                rngCombo.Overlay, rngCombo.TextLayout, rngCombo.DiceBear);
+                rngCombo.Overlay, rngCombo.TextLayout, true);
         }
 
 
@@ -53,23 +52,20 @@ namespace backend.Services.AlbumCoverGeneration
             var combinations = new List<DesignElements>();
             foreach (var overlay in new[] { true, false })
             {
-                foreach (var diceBear in new[] { true, false })
+                foreach (var textLayout in new[]
                 {
-                    foreach (var textLayout in new[]
-                    {
                         TextLayout.BothBottom,
                         TextLayout.BothTop,
                         TextLayout.TitleTopSubtitleBottom
                     })
+                {
+                    combinations.Add(new DesignElements
                     {
-                        combinations.Add(new DesignElements
-                        {
-                            Overlay = overlay,
-                            TextLayout = textLayout,
-                            DiceBear = diceBear
-                        });
-                    }
+                        Overlay = overlay,
+                        TextLayout = textLayout
+                    });
                 }
+
             }
 
             return combinations.ToArray();
