@@ -49,7 +49,7 @@ export default function SongCard({ song }: SongCardProps) {
     const initHowl = () => {
         if (!howlRef.current) {
             howlRef.current = new Howl({
-                src: [`http://localhost:5017/api/songs/${song.id}/audio?seed=${seed}`],
+                src: [`${import.meta.env.VITE_BASE_URL}/api/songs/${song.id}/audio?seed=${seed}`],
                 format: ['wav'],
                 html5: true,
                 onload: () => {
@@ -140,12 +140,12 @@ export default function SongCard({ song }: SongCardProps) {
                 <ActionIcon radius="xl" color="blue" variant="filled" size="md" onClick={togglePlay}>
                     {isPlaying ? <IconPlayerPauseFilled size={14} /> : <IconPlayerPlayFilled size={14} />}
                 </ActionIcon>
-                <Slider 
-                    value={progress} 
-                    onChange={handleSeek} 
-                    max={duration || 100} 
-                    color="blue" 
-                    size="sm" 
+                <Slider
+                    value={progress}
+                    onChange={handleSeek}
+                    max={duration || 100}
+                    color="blue"
+                    size="sm"
                     style={{ flex: 1 }}
                     label={formatTime(progress)}
                 />

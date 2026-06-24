@@ -45,7 +45,7 @@ export default function SongDetails({ song, seed }: { song: Song, seed: number }
     const initHowl = () => {
         if (!howlRef.current) {
             howlRef.current = new Howl({
-                src: [`http://localhost:5017/api/songs/${song.id}/audio?seed=${seed}`],
+                src: [`${import.meta.env.VITE_BASE_URL}/api/songs/${song.id}/audio?seed=${seed}`],
                 format: ['wav'],
                 html5: true,
                 onload: () => {
