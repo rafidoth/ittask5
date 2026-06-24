@@ -3,12 +3,12 @@ using backend.Services;
 namespace backend.Controllers;
 
 [ApiController]
-[Route("/api")]
+[Route("/api/songs")]
 public class SongsController(ISongService songService) : ControllerBase
 {
     private readonly ISongService _songService = songService;
 
-    [HttpGet("songs")]
+    [HttpGet]
     public async Task<IActionResult> GetSongs(
         [FromQuery] int seed = 0,
         [FromQuery] string language = "en",
@@ -26,5 +26,17 @@ public class SongsController(ISongService songService) : ControllerBase
         {
             return StatusCode(500, result.Message);
         }
+    }
+
+    [HttpGet("{songId}/audio")]
+    public IActionResult GetSongAudio(
+        int songId,
+        [FromQuery] int seed = 0
+    )
+    {
+        Console.WriteLine($"Generating audio for songId: {songId} with seed: {seed}");
+        _songService.UpdateParameters(0f, seed, "en", 0);
+        var audioBytes = _songService.GenerateMusicForSong(songId);
+        return File(audioBytes, "audio/wav");
     }
 }

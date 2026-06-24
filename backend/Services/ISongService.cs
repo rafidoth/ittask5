@@ -7,7 +7,6 @@ namespace backend.Services
     {
         Task<ServiceResult<SongsResponseDto>> GetSongs(int count);
         void UpdateParameters(float likes, int seed, string language, int page);
-
-
+        byte[] GenerateMusicForSong(int songId);
     }
 }

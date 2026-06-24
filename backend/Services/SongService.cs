@@ -2,29 +2,27 @@ using backend.Dto;
 using backend.Entity;
 using backend.Services.AlbumCoverGeneration;
 using backend.Services.ServiceResults;
+using backend.Services.MusicGeneration;
 using Bogus;
-using Bogus.Hollywood;
-
 namespace backend.Services
 {
 
-    public enum Language
-    {
-        En,
-        Es
-    }
-
     public class SongService : ISongService
     {
-        private readonly Faker<Song> _faker;
+        private Faker<Song> _faker;
         private int seed = 123456789;
         private float likes = 5.0f;
-        private Language language = Language.En;
+        private string language = "en";
 
         public SongService()
         {
-            _faker = new Faker<Song>().UseSeed(seed)
-                .RuleFor(s => s.Id, f => f.IndexFaker + 1);
+            InitializeFaker(this.language, this.seed);
+        }
+
+        private void InitializeFaker(string lang, int seedValue)
+        {
+            _faker = new Faker<Song>(lang).UseSeed(seedValue);
+            _faker.RuleFor(s => s.Id, f => f.IndexFaker + 1);
             ConfigureFakerRules();
         }
         public async Task<ServiceResult<SongsResponseDto>> GetSongs(int count)
@@ -52,15 +50,20 @@ namespace backend.Services
             {
                 this.seed = HashCode.Combine(seed, page);
             }
-            _faker.UseSeed(this.seed);
+            InitializeFaker(this.language, this.seed);
         }
 
-        public Language ResolveLanguage(string lang) => lang.ToLower() switch
+        private string ResolveLanguage(string language)
         {
-            "en" => Language.En,
-            "es" => Language.Es,
-            _ => Language.En,
-        };
+            return language.ToLower() switch
+            {
+                "en" => "en",
+                "fr" => "fr",
+                "es" => "es",
+                _ => "en"
+            };
+        }
+
 
         private void ConfigureFakerRules()
         {
@@ -97,31 +100,23 @@ namespace backend.Services
 
         private void AddTitleRules()
         {
-            _faker.RuleFor(s => s.Title, f => f.Random.Number(0, 13) switch
+            _faker.RuleFor(s => s.Title, f => f.Random.Number(0, 5) switch
             {
                 0 => $"{f.Commerce.Color()} {f.Commerce.Product()}",
-                1 => $"{f.Commerce.Color()} {f.Date.Weekday()}",
-                2 => $"{f.Address.CityPrefix()} night",
-                3 => $"The {f.Address.City()}",
-                4 => $"{f.Hacker.Adjective()} day",
-                5 => $"That {f.Commerce.Product()}",
-                6 => $"{f.Hacker.Adjective()} Heart",
-                7 => $"Lost in {f.Address.City()}",
-                8 => $"{f.Commerce.Color()} Sky",
-                9 => $"Broken {f.Commerce.Product()}",
-                10 => $"{f.Date.Month()} {f.Hacker.Noun()}",
-                11 => $"Midnight {f.Address.City()}",
-                _ => $"The {f.Date.Month()} We {f.Hacker.Verb()}",
+                1 => f.Address.City(),
+                2 => f.Commerce.Department(),
+                3 => $"{f.Date.Weekday()} {f.Commerce.Product()}",
+                4 => $"{f.Address.CityPrefix()} {f.Commerce.Color()}",
+                _ => f.Commerce.ProductName()
             });
         }
 
         private void AddArtistRules()
         {
-            _faker.RuleFor(s => s.Artist, f => f.Random.Number(0, 3) switch
+            _faker.RuleFor(s => s.Artist, f => f.Random.Number(0, 1) switch
             {
-                0 => $"{f.Person.FullName}",
-                1 => $"{f.Person.FirstName} {f.Name.Suffix()}",
-                _ => $"{f.Person.FirstName} {f.Name.Suffix()}",
+                0 => f.Name.FullName(),
+                _ => $"{f.Name.FirstName()} {f.Name.LastName()}"
             });
         }
 
@@ -129,9 +124,8 @@ namespace backend.Services
         {
             _faker.RuleFor(s => s.Album, f => f.Random.Int(1, 3) switch
             {
-                1 => $"{f.Hacker.Noun()}",
-                2 => $"{f.Hacker.IngVerb()}",
-                3 => $"{f.Commerce.Product()}",
+                1 => f.Commerce.Product(),
+                2 => f.Address.City(),
                 _ => "Single"
             });
         }
@@ -175,6 +169,10 @@ namespace backend.Services
             }
         }
 
+        public byte[] GenerateMusicForSong(int songId)
+        {
+            return Music.Generate(this.seed, songId);
+        }
 
     }
 }

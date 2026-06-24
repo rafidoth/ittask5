@@ -3,6 +3,7 @@ import { IconArrowsShuffle, IconChevronDown, IconGrid4x4, IconLayoutGrid, IconTa
 import { useState, useEffect } from "react";
 import { useLanguage, useLikes, useParameterActions, useSeed, useViewMode } from "./parametersStore";
 import type { ViewMode } from "./types";
+import { ViewToggle } from "./ViewToggler";
 
 export default function ParameterToolbar() {
     const language = useLanguage();
@@ -63,26 +64,10 @@ export default function ParameterToolbar() {
                         />
                     </Stack>
                 </Flex>
-                <SegmentedControl
-                    value={viewMode}
-                    onChange={(value) => actions.setViewMode(value as ViewMode)}
-                    color="blue"
-                    withItemsBorders={true}
-                    data={[
-                        {
-                            label: <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                                <IconTable />
-                            </div>, value: 'view'
-                        },
-                        {
-                            label: <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                                <IconLayoutGrid />
-                            </div>, value: 'grid'
-                        },
-
-                    ]}
-                />
+                <ViewToggle />
             </Flex>
         </Paper>
     );
 }
+
+
