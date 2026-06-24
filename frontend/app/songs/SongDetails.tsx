@@ -3,8 +3,11 @@ import { IconPlayerPlayFilled, IconPlayerPauseFilled, IconVolume, IconThumbUpFil
 import type { Song } from "./types";
 import { useState, useRef, useEffect } from "react";
 import { Howl } from 'howler';
+import { useCurrentlyPlayingId, useParameterActions } from '~/songs/parametersStore';
 
 export default function SongDetails({ song, seed }: { song: Song, seed: number }) {
+    const currentlyPlayingId = useCurrentlyPlayingId();
+    const { setCurrentlyPlayingId } = useParameterActions();
     const [isPlaying, setIsPlaying] = useState(false);
     const [progress, setProgress] = useState(0);
     const [duration, setDuration] = useState(0);
@@ -31,27 +34,47 @@ export default function SongDetails({ song, seed }: { song: Song, seed: number }
         }
     };
 
+    useEffect(() => {
+        if (currentlyPlayingId !== song.id && isPlaying) {
+            howlRef.current?.pause();
+            setIsPlaying(false);
+        }
+    }, [currentlyPlayingId, isPlaying, song.id]);
+
+
+    const initHowl = () => {
+        if (!howlRef.current) {
+            howlRef.current = new Howl({
+                src: [`http://localhost:5017/api/songs/${song.id}/audio?seed=${seed}`],
+                format: ['wav'],
+                html5: true,
+                onload: () => {
+                    if (howlRef.current) setDuration(howlRef.current.duration());
+                },
+                onplay: () => {
+                    animationRef.current = requestAnimationFrame(updateProgress);
+                },
+                onpause: () => {
+                    if (animationRef.current) cancelAnimationFrame(animationRef.current);
+                },
+                onend: () => {
+                    setIsPlaying(false);
+                    setProgress(0);
+                    if (animationRef.current) cancelAnimationFrame(animationRef.current);
+                    setCurrentlyPlayingId(null);
+                }
+            });
+        }
+    };
 
     useEffect(() => {
-        howlRef.current = new Howl({
-            src: [`http://localhost:5017/api/songs/${song.id}/audio?seed=${seed}`],
-            format: ['wav'],
-            html5: true,
-            onload: () => {
-                if (howlRef.current) setDuration(howlRef.current.duration());
-            },
-            onplay: () => {
-                animationRef.current = requestAnimationFrame(updateProgress);
-            },
-            onpause: () => {
-                if (animationRef.current) cancelAnimationFrame(animationRef.current);
-            },
-            onend: () => {
-                setIsPlaying(false);
-                setProgress(0);
-                if (animationRef.current) cancelAnimationFrame(animationRef.current);
-            }
-        });
+        if (howlRef.current) {
+            howlRef.current.unload();
+            howlRef.current = null;
+        }
+        setIsPlaying(false);
+        setProgress(0);
+        setDuration(0);
 
         return () => {
             if (animationRef.current) cancelAnimationFrame(animationRef.current);
@@ -62,11 +85,14 @@ export default function SongDetails({ song, seed }: { song: Song, seed: number }
     }, [song.id, seed]);
 
     const togglePlay = () => {
+        initHowl();
         if (howlRef.current) {
             if (isPlaying) {
                 howlRef.current.pause();
+                setCurrentlyPlayingId(null);
             } else {
                 howlRef.current.play();
+                setCurrentlyPlayingId(song.id);
             }
             setIsPlaying(!isPlaying);
         }
@@ -74,7 +100,6 @@ export default function SongDetails({ song, seed }: { song: Song, seed: number }
 
     return (
         <Flex gap="xl" p="md" align="flex-start">
-            {/* Left Column */}
             <Stack align="center" gap="sm">
                 <Image
                     src={song.coverImageBase64 ? `data:image/png;base64,${song.coverImageBase64}` : "https://placehold.co/200x200?text=No+Cover"}
@@ -90,21 +115,19 @@ export default function SongDetails({ song, seed }: { song: Song, seed: number }
                     </Group>
                 </Badge>
             </Stack>
-
-            {/* Right Column */}
             <Stack gap={4} style={{ flex: 1 }}>
+                <Title order={2} c="dark">{song.title || "Unknown Title"}</Title>
                 <Group gap="sm" align="center">
-                    <Title order={2} c="dark">{song.title || "Unknown Title"}</Title>
                     <ActionIcon radius="xl" color="blue" variant="filled" size="md" onClick={togglePlay}>
                         {isPlaying ? <IconPlayerPauseFilled size={14} /> : <IconPlayerPlayFilled size={14} />}
                     </ActionIcon>
-                    <Slider 
-                        value={progress} 
-                        onChange={handleSeek} 
-                        max={duration || 100} 
-                        w={150} 
-                        color="blue" 
-                        size="sm" 
+                    <Slider
+                        value={progress}
+                        onChange={handleSeek}
+                        max={duration || 100}
+                        w={150}
+                        color="blue"
+                        size="sm"
                         label={formatTime(progress)}
                     />
                     <Badge color="gray" variant="filled" radius="xl" style={{ textTransform: 'none' }}>
@@ -115,37 +138,6 @@ export default function SongDetails({ song, seed }: { song: Song, seed: number }
                 <Text size="lg" c="dimmed" mt={4}>
                     from <Text span fw={700} c="dark">{song.album || "Unknown Album"}</Text> by <Text span fs="italic" fw={700} c="dark">{song.artist || "Unknown Artist"}</Text>
                 </Text>
-
-                <Text size="sm" c="dimmed">
-                    Apple Records, 2019
-                </Text>
-
-                <Tabs defaultValue="lyrics" variant="outline" mt="md">
-                    <Tabs.List>
-                        <Tabs.Tab value="lyrics">Lyrics</Tabs.Tab>
-                    </Tabs.List>
-
-                    <Tabs.Panel
-                        value="lyrics"
-                        p="md"
-                        style={{
-                            borderLeft: '1px solid var(--mantine-color-default-border)',
-                            borderRight: '1px solid var(--mantine-color-default-border)',
-                            borderBottom: '1px solid var(--mantine-color-default-border)',
-                            borderBottomLeftRadius: 'var(--mantine-radius-sm)',
-                            borderBottomRightRadius: 'var(--mantine-radius-sm)'
-                        }}
-                    >
-                        <ScrollArea h={180} type="always" offsetScrollbars>
-                            <Stack gap="md">
-                                <Text fs="italic">Every beat reminds me of you, tearing me apart</Text>
-                                <Text fs="italic">In the million suns that shine, you're the brightest star</Text>
-                                <Text fs="italic" fw={800}>At the break of dawn, you're all I want, no matter how far</Text>
-                                <Text fs="italic">Oh Melanie, I try to move on</Text>
-                            </Stack>
-                        </ScrollArea>
-                    </Tabs.Panel>
-                </Tabs>
             </Stack>
         </Flex>
     );

@@ -18,7 +18,7 @@ export default function ParameterToolbar() {
     }, [likes]);
 
     return (
-        <Paper >
+        <Paper pos="sticky" top={0} style={{ zIndex: 100 }}>
             <Flex justify={"space-between"} bg="gray.0" bdrs={"md"} align={"center"} p="md">
                 <Flex p="md" gap="md">
                     <Box style={{ background: "white" }} bd={"1px solid gray.3"} px="md" py="xs" bdrs={"sm"} w={200}>

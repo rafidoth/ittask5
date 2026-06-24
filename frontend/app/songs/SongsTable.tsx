@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Table, Box, Group, Center, Pagination, LoadingOverlay } from '@mantine/core';
-import type { Song, GenerationResponse } from './types';
-import React from 'react';
+import type { GenerationResponse } from './types';
 import SongsTableRow from './SongsTableRow';
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSongs } from "~/api";
@@ -73,7 +72,7 @@ export default function SongsTable() {
 
   return (
     <Box pos="relative" w="100%" mt="md">
-      <LoadingOverlay visible={isLoading || false} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
+      <LoadingOverlay visible={isLoading || false} zIndex={1000} />
       <Center>
         <Table highlightOnHover style={{ marginTop: '16px' }} fz="md">
           <Table.Thead style={{ borderBottom: '2px solid var(--mantine-color-dark-8)' }} >

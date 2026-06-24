@@ -12,10 +12,12 @@ export default function SongsGrid() {
     const likes = useLikes();
     const seed = useSeed();
     const [pagesToLoad, setPagesToLoad] = useState<number[]>([1]);
+    const [scroll, scrollTo] = useWindowScroll();
 
     useEffect(() => {
         setPagesToLoad([1]);
-    }, [language, likes, seed]);
+        scrollTo({ y: 0 });
+    }, [language, likes, seed, scrollTo]);
 
     const queryResults = useQueries({
         queries: pagesToLoad.map(page => ({
@@ -38,8 +40,6 @@ export default function SongsGrid() {
             setPagesToLoad(prev => [...prev, prev.length + 1]);
         }
     }, [entry?.isIntersecting, isFetchingAny]);
-
-    const [scroll, scrollTo] = useWindowScroll();
 
     if (!isFetchingAny && data.length === 0) {
         return <Text mt="xl" ta="center">No songs available</Text>;
