@@ -1,4 +1,4 @@
-import { Box, Paper, Select, Flex, Text, RollingNumber, Slider, Stack, SegmentedControl } from "@mantine/core";
+import { Box, Paper, Select, Flex, Text, RollingNumber, Slider, Stack, SegmentedControl, NumberInput } from "@mantine/core";
 import { IconArrowsShuffle, IconChevronDown, IconGrid4x4, IconLayoutGrid, IconTable } from "@tabler/icons-react";
 import { useState, useEffect } from "react";
 import { useLanguage, useLikes, useParameterActions, useSeed, useViewMode } from "./parametersStore";
@@ -12,6 +12,8 @@ export default function ParameterToolbar() {
     const viewMode = useViewMode();
     const actions = useParameterActions();
     const [localLikes, setLocalLikes] = useState(likes);
+    const [isEditingSeed, setIsEditingSeed] = useState(false);
+    const [tempSeed, setTempSeed] = useState<number | string>(seed);
 
     useEffect(() => {
         setLocalLikes(likes);
@@ -43,9 +45,38 @@ export default function ParameterToolbar() {
                     <Box style={{ background: "white" }} bd={"1px solid gray.3"} px="md" py="xs" bdrs={"sm"} w={200}>
                         <Text p={0} mb={4} size="xs" c="dimmed" fw={"bold"}>Seed</Text>
                         <Flex justify={"space-between"} align={"center"}>
-                            <RollingNumber value={seed} />
+                            <Box 
+                                onClick={() => {
+                                    setTempSeed(seed);
+                                    setIsEditingSeed(true);
+                                }} 
+                                style={{ cursor: "text", flexGrow: 1 }}
+                            >
+                                {isEditingSeed ? (
+                                    <NumberInput
+                                        value={tempSeed}
+                                        onChange={(val) => setTempSeed(val)}
+                                        onBlur={() => {
+                                            actions.setSeed(Number(tempSeed) || 0);
+                                            setIsEditingSeed(false);
+                                        }}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter") {
+                                                actions.setSeed(Number(tempSeed) || 0);
+                                                setIsEditingSeed(false);
+                                            }
+                                        }}
+                                        autoFocus
+                                        variant="unstyled"
+                                        hideControls
+                                        styles={{ input: { padding: 0, height: "auto", minHeight: "auto", fontSize: "inherit", lineHeight: 1 } }}
+                                    />
+                                ) : (
+                                    <RollingNumber value={seed} />
+                                )}
+                            </Box>
                             <IconArrowsShuffle
-                                size={18} style={{ cursor: "pointer" }}
+                                size={18} style={{ cursor: "pointer", marginLeft: "8px" }}
                                 onClick={() => actions.setSeed(Math.floor(Math.random() * 10000))}
                             />
                         </Flex>
